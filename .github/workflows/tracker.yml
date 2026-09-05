@@ -1,0 +1,47 @@
+name: Jupiter Spot Wallet Tracker
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Runs every 15 minutes
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  track-wallet:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to update cache & push back to repo
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Tracker Script
+        run: python tracker.py
+
+      - name: Check if change occurred and Send Email Notification
+        if: hashFiles('changed.flag') != ''
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "🚨 Alert: New Spot Activity on Solana Wallet!"
+          body: file://changed.flag
+          to: ${{ github.actor_email }} # Sends directly to your GitHub account email
+          from: Solana Tracker Bot
+
+      - name: Commit Updated State Cache
+        if: always()
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add wallet_cache.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update wallet state cache [skip ci]" && git push)
