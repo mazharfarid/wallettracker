@@ -2,7 +2,7 @@ name: Jupiter Spot Wallet Tracker
 
 on:
   schedule:
-    - cron: '*/15 * * * *' # Runs every 15 minutes
+    - cron: '*/30 * * * *' # Runs every 30 minutes
   workflow_dispatch: # Allows manual trigger from GitHub Actions tab
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
           server_port: 465
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "🚨 Alert: New Spot Activity on Solana Wallet!"
+          subject: "🚨 Alert: New Jupiter Spot Activity Detected!"
           body: file://changed.flag
           to: ldaadpayroll@gmail.com
           from: Solana Tracker Bot <ldaadpayroll@gmail.com>
